@@ -1,5 +1,7 @@
 import asyncio
 import random
+import re
+from collections.abc import Callable
 from pathlib import Path
 
 import httpx
@@ -20,6 +22,8 @@ from ..utils.m3u8_parser import parse_playlist, select_variant
 
 console = Console()
 
+_RICH_MARKUP = re.compile(r"\[/?[^\]]*\]")
+
 
 class DownloaderService:
     """Downloads all segments from a parsed m3u8 playlist in parallel."""
@@ -30,11 +34,20 @@ class DownloaderService:
         timeout: int = 30,
         delay_min: float = 0.1,
         delay_max: float = 0.6,
+        log_fn: Callable[[str], None] | None = None,
     ) -> None:
         self._max_parallel = max_parallel
         self._timeout = timeout
         self._delay_min = delay_min
         self._delay_max = delay_max
+        self._log_fn = log_fn
+
+    def _log(self, msg: str) -> None:
+        plain = _RICH_MARKUP.sub("", msg).strip()
+        if self._log_fn:
+            self._log_fn(plain)
+        else:
+            console.print(msg)
 
     async def download_from_playlist(
         self,
@@ -53,7 +66,7 @@ class DownloaderService:
         session.segments = playlist.segments
 
         headers = self._build_headers(session, user_agent)
-        console.print(
+        self._log(
             f"[cyan]Downloading {len(playlist.segments)} segments "
             f"({self._max_parallel} parallel, delay {self._delay_min}–{self._delay_max}s)...[/cyan]"
         )
@@ -90,7 +103,7 @@ class DownloaderService:
             session.total_count = len(playlist.segments)
             session.segments = playlist.segments
 
-            console.print(
+            self._log(
                 f"[cyan]Downloading {len(playlist.segments)} segments "
                 f"({self._max_parallel} parallel, delay {self._delay_min}–{self._delay_max}s)...[/cyan]"
             )
@@ -119,28 +132,39 @@ class DownloaderService:
         session: CaptureSession,
     ) -> None:
         semaphore = asyncio.Semaphore(self._max_parallel)
+        total = len(segments)
 
-        with Progress(
-            SpinnerColumn(),
-            "[progress.description]{task.description}",
-            BarColumn(),
-            "[progress.percentage]{task.percentage:>3.0f}%",
-            DownloadColumn(),
-            TransferSpeedColumn(),
-            console=console,
-        ) as progress:
-            task_id: TaskID = progress.add_task("Downloading", total=len(segments))
+        if self._log_fn is None:
+            with Progress(
+                SpinnerColumn(),
+                "[progress.description]{task.description}",
+                BarColumn(),
+                "[progress.percentage]{task.percentage:>3.0f}%",
+                DownloadColumn(),
+                TransferSpeedColumn(),
+                console=console,
+            ) as progress:
+                task_id: TaskID = progress.add_task("Downloading", total=total)
 
-            async def _worker(segment: Segment) -> None:
+                async def _worker_rich(segment: Segment) -> None:
+                    async with semaphore:
+                        await self._download_segment(client, segment, session.temp_dir)
+                        session.captured_count += 1
+                        progress.advance(task_id)
+
+                await asyncio.gather(*[_worker_rich(seg) for seg in segments])
+        else:
+            async def _worker_logged(segment: Segment) -> None:
                 async with semaphore:
                     await self._download_segment(client, segment, session.temp_dir)
                     session.captured_count += 1
-                    progress.advance(task_id)
+                    done = session.captured_count
+                    pct = done * 100 // total
+                    prev_pct = (done - 1) * 100 // total
+                    if pct // 10 > prev_pct // 10 or done == total:
+                        self._log(f"Downloading... {done}/{total} segments ({pct}%)")
 
-            await asyncio.gather(
-                *[_worker(seg) for seg in segments],
-                return_exceptions=False,
-            )
+            await asyncio.gather(*[_worker_logged(seg) for seg in segments])
 
     async def _resolve_playlist(
         self,
@@ -155,7 +179,7 @@ class DownloaderService:
         if playlist.is_master:
             variant = select_variant(playlist, quality)
             if variant:
-                console.print(
+                self._log(
                     f"[cyan]Selected variant:[/cyan] "
                     f"{variant.resolution or 'unknown'} "
                     f"({variant.bandwidth // 1000} kbps)"
@@ -185,7 +209,7 @@ class DownloaderService:
                 if response.status_code in (429, 503):
                     # Rate-limited — exponential backoff with jitter.
                     wait = (2 ** attempt) * 3 + random.uniform(0, 2)
-                    console.print(
+                    self._log(
                         f"\n[yellow]Rate limited (HTTP {response.status_code}) "
                         f"on segment {segment.index} — waiting {wait:.1f}s[/yellow]"
                     )
@@ -197,7 +221,7 @@ class DownloaderService:
                 if len(response.content) < 1024:
                     # Server returned an error page instead of a real TS segment.
                     wait = (2 ** attempt) * 2 + random.uniform(0, 2)
-                    console.print(
+                    self._log(
                         f"\n[yellow]Suspiciously small response ({len(response.content)} bytes) "
                         f"for segment {segment.index} (HTTP {response.status_code}) "
                         f"— retry in {wait:.1f}s[/yellow]"
@@ -213,7 +237,7 @@ class DownloaderService:
 
             except (httpx.TimeoutException, httpx.NetworkError) as exc:
                 wait = (2 ** attempt) * 2 + random.uniform(0, 2)
-                console.print(
+                self._log(
                     f"\n[yellow]Network error on segment {segment.index} "
                     f"({exc.__class__.__name__}) — retry in {wait:.1f}s[/yellow]"
                 )

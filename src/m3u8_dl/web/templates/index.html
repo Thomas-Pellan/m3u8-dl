@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>m3u8-dl</title>
+<link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+<div class="wrap">
+  <h1>m3u8-dl</h1>
+  <p class="sub">HLS stream downloader &mdash; headless browser mode</p>
+
+  <div class="card">
+    <div class="card-title">New capture</div>
+    <form id="frm">
+      <label>Stream page URL <span style="color:#c0392b">*</span></label>
+      <input type="url" name="url" placeholder="https://example.com/watch/movie" required>
+
+      <label>Output filename (without .mp4) <span style="color:#c0392b">*</span></label>
+      <input type="text" name="output_name" placeholder="interstellar-2014" required>
+
+      <div class="row">
+        <div>
+          <label>Capture mode</label>
+          <select name="mode">
+            <option value="auto">auto</option>
+            <option value="direct">direct</option>
+          </select>
+        </div>
+        <div>
+          <label>Quality</label>
+          <select name="quality">
+            <option value="best">best</option>
+            <option value="worst">worst</option>
+          </select>
+        </div>
+        <div>
+          <label>Parallel downloads</label>
+          <input type="number" name="parallel" value="4" min="1" max="16">
+        </div>
+      </div>
+
+      <button class="btn" type="submit" id="btn">Start capture</button>
+      <p id="msg"></p>
+    </form>
+  </div>
+
+  <div class="card">
+    <div class="jh">
+      <span class="card-title">Jobs</span>
+      <span class="jh-tick" id="tick"></span>
+    </div>
+    <div id="jobs"><p class="empty">No jobs yet.</p></div>
+  </div>
+</div>
+
+<script src="/static/app.js"></script>
+</body>
+</html>

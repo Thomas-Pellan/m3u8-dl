@@ -8,9 +8,9 @@ Uses [camoufox](https://github.com/daijro/camoufox) to spoof a real Firefox fing
 
 ## About AI
 
-This project is made with claude code for my personal use.
+This project is made with Claude code for my personal use. As his manager, I'm still taking the credit for his work tough.
 
-Not all cases are tested. Worked for my use case with auto and interception mode.
+Not all cases are tested. Worked for my use case with auto and interception mode. Works with both a cli and a small docker with usable frontend ui that looks pretty (mostly static code, it's not.)
 
 You wouldn't steal a car ? *Then don't use this to steal some copyrighted content* (or do it, I'm not your dad).
 
@@ -170,6 +170,49 @@ m3u8-dl assemble ~/.m3u8-dl/temp/my-movie ~/Desktop/my-movie.mp4
 | `auto` | Waits up to 30s for m3u8 detection, then downloads all segments in parallel. Falls back to intercept if no playlist is found. | Long movies — fast parallel download. |
 | `intercept` | Saves every TS chunk as the browser receives it. You must let the video play from start to finish. | Sites where the m3u8 URL cannot be parsed directly. |
 | `direct` | Immediately fetches and downloads the playlist. Useful when you already know the m3u8 URL appears early. | Short clips or known playlist structures. |
+
+---
+
+## Web UI (Docker)
+
+The web interface lets you queue captures from a browser without touching the terminal.
+
+### Quick start
+
+```bash
+docker compose up --build
+```
+
+Then open [http://localhost:8080](http://localhost:8080).
+
+Downloaded `.mp4` files are written to a `./movies/` folder next to the `docker-compose.yml`.
+
+### What the compose file does
+
+| Setting | Value |
+|---|---|
+| Port | `8080` (host) → `8080` (container) |
+| Output volume | `./movies` → `/output` |
+| Capture mode | `auto` |
+| Quality | `best` |
+| Parallel downloads | `4` |
+
+All values can be overridden in `docker-compose.yml` under `environment`, or passed directly:
+
+```bash
+M3U8DL_MAX_PARALLEL_DOWNLOADS=8 docker compose up
+```
+
+### Overridable environment variables
+
+| Variable | Default | Description |
+|---|---|---|
+| `M3U8DL_CAPTURE_MODE` | `auto` | `auto`, `intercept`, or `direct` |
+| `M3U8DL_PREFERRED_QUALITY` | `best` | `best`, `worst`, or `1920x1080` |
+| `M3U8DL_MAX_PARALLEL_DOWNLOADS` | `6` | Concurrent segment downloads |
+| `M3U8DL_OUTPUT_DIR` | `/output` | Where `.mp4` files are written |
+| `M3U8DL_TEMP_DIR` | `/tmp/m3u8-dl` | Temp segment storage |
+| `M3U8DL_HEADLESS` | `true` | Always true in Docker |
 
 ---
 

@@ -1,4 +1,6 @@
 import asyncio
+import re
+from collections.abc import Callable
 from pathlib import Path
 
 from rich.console import Console
@@ -15,6 +17,10 @@ from ..services.title_scraper import TitleScraperService
 console = Console()
 
 _M3U8_DETECTION_TIMEOUT = 30
+_HEADLESS_INTERCEPT_MAX = 300   # absolute cap (seconds) when waiting in headless mode
+_HEADLESS_IDLE_TIMEOUT = 10     # stop after this many seconds with no new segment
+_HEADLESS_FIRST_SEG_TIMEOUT = 30  # give up if the first segment never arrives
+_RICH_MARKUP = re.compile(r"\[/?[^\]]*\]")
 
 
 class CaptureService:
@@ -28,8 +34,9 @@ class CaptureService:
       6. Assembles segments into an mp4 via ffmpeg
     """
 
-    def __init__(self, config: AppConfig) -> None:
+    def __init__(self, config: AppConfig, log_fn: Callable[[str], None] | None = None) -> None:
         self._config = config
+        self._log_fn = log_fn
         self._browser = BrowserService(headless=config.headless)
         self._assembler = AssemblerService()
         self._downloader = DownloaderService(
@@ -37,10 +44,18 @@ class CaptureService:
             timeout=config.request_timeout,
             delay_min=config.request_delay_min,
             delay_max=config.request_delay_max,
+            log_fn=log_fn,
         )
         self._title_scraper = TitleScraperService()
 
-    async def run(self, output_name: str | None = None) -> Path:
+    def _log(self, msg: str) -> None:
+        plain = _RICH_MARKUP.sub("", msg).strip()
+        if self._log_fn:
+            self._log_fn(plain)
+        else:
+            console.print(msg)
+
+    async def run(self, output_name: str | None = None, start_url: str | None = None) -> Path:
         if not self._assembler.is_available():
             raise RuntimeError("ffmpeg not found. Install it and ensure it is on PATH.")
 
@@ -53,7 +68,7 @@ class CaptureService:
         session.temp_dir.mkdir(parents=True, exist_ok=True)
 
         async with self._browser.launch():
-            chosen_name = await self._run_capture(session, output_name)
+            chosen_name = await self._run_capture(session, output_name, start_url)
 
         output_path = self._config.output_dir / chosen_name
         if not output_path.suffix:
@@ -62,7 +77,9 @@ class CaptureService:
 
     # ── capture flow ─────────────────────────────────────────────────────────
 
-    async def _run_capture(self, session: CaptureSession, forced_name: str | None) -> str:
+    async def _run_capture(
+        self, session: CaptureSession, forced_name: str | None, start_url: str | None = None
+    ) -> str:
         page = await self._browser.new_page()
 
         interceptor = InterceptorService(
@@ -73,12 +90,12 @@ class CaptureService:
 
         session.status = SessionStatus.BROWSING
         if self._config.headless:
-            url = await asyncio.get_running_loop().run_in_executor(
+            url = start_url or await asyncio.get_running_loop().run_in_executor(
                 None, lambda: Prompt.ask("[bold]Movie URL[/bold]")
             )
             await page.goto(url)
         else:
-            console.print(
+            self._log(
                 "\n[bold]Browser is open.[/bold]  "
                 "Navigate to the movie player, start the video, "
                 "then press [bold cyan]Enter[/bold cyan] here.\n"
@@ -125,22 +142,50 @@ class CaptureService:
 
     async def _intercept_mode(self, session: CaptureSession) -> None:
         session.status = SessionStatus.CAPTURING
-        console.print(
-            "[cyan]Intercept mode:[/cyan] let the video play to the end, "
-            "then press [bold cyan]Enter[/bold cyan].\n"
-        )
-        await asyncio.get_running_loop().run_in_executor(None, input)
-        console.print(f"\n[green]{session.captured_count} segments captured.[/green]")
+        if self._config.headless:
+            self._log(
+                "[cyan]Intercept mode (headless):[/cyan] "
+                "waiting for segments — will stop after "
+                f"{_HEADLESS_IDLE_TIMEOUT}s of silence."
+            )
+            await self._headless_intercept_wait(session)
+        else:
+            self._log(
+                "[cyan]Intercept mode:[/cyan] let the video play to the end, "
+                "then press [bold cyan]Enter[/bold cyan].\n"
+            )
+            await asyncio.get_running_loop().run_in_executor(None, input)
+        self._log(f"\n[green]{session.captured_count} segments captured.[/green]")
+
+    async def _headless_intercept_wait(self, session: CaptureSession) -> None:
+        loop = asyncio.get_event_loop()
+        deadline = loop.time() + _HEADLESS_INTERCEPT_MAX
+        last_count = session.captured_count
+        last_change = loop.time()
+
+        while loop.time() < deadline:
+            await asyncio.sleep(1)
+            current = session.captured_count
+            now = loop.time()
+            if current != last_count:
+                last_count = current
+                last_change = now
+            else:
+                idle = now - last_change
+                if current == 0 and idle >= _HEADLESS_FIRST_SEG_TIMEOUT:
+                    break
+                if current > 0 and idle >= _HEADLESS_IDLE_TIMEOUT:
+                    break
 
     async def _direct_mode(self, session: CaptureSession, page) -> None:
         if not session.playlist:
-            console.print(
+            self._log(
                 f"[yellow]No playlist detected yet. "
                 f"Waiting up to {_M3U8_DETECTION_TIMEOUT}s...[/yellow]"
             )
             await self._wait_for_playlist(session)
 
-        console.print(
+        self._log(
             f"[dim]direct mode — "
             f"m3u8_url={session.m3u8_url or 'None'}  "
             f"playlist={'set (' + str(len(session.playlist.segments)) + ' segments)' if session.playlist else 'None'}[/dim]"
@@ -152,7 +197,7 @@ class CaptureService:
         if session.playlist:
             await self._downloader.download_from_playlist(session.playlist, session, cookies, ua)
         elif session.m3u8_url:
-            console.print("[yellow]Playlist content not cached — re-fetching URL via httpx.[/yellow]")
+            self._log("[yellow]Playlist content not cached — re-fetching URL via httpx.[/yellow]")
             await self._downloader.download_from_url(
                 session.m3u8_url, session, cookies, ua, self._config.preferred_quality
             )
@@ -163,20 +208,27 @@ class CaptureService:
             )
 
     async def _auto_mode(self, session: CaptureSession, page) -> None:
-        console.print(
+        self._log(
             f"[cyan]Auto mode:[/cyan] waiting up to {_M3U8_DETECTION_TIMEOUT}s "
             "for m3u8 playlist..."
         )
         await self._wait_for_playlist(session)
 
-        console.print(
+        self._log(
             f"[dim]auto mode — "
             f"m3u8_url={session.m3u8_url or 'None'}  "
             f"playlist={'set (' + str(len(session.playlist.segments)) + ' segments)' if session.playlist else 'None'}[/dim]"
         )
 
+        if session.playlist and len(session.playlist.segments) == 0:
+            self._log(
+                "[yellow]Playlist intercepted but contains 0 segments — "
+                "falling back to intercept mode.[/yellow]"
+            )
+            session.playlist = None
+
         if session.playlist:
-            console.print(
+            self._log(
                 f"[green]Playlist ready[/green] ({len(session.playlist.segments)} segments) "
                 "— starting parallel download."
             )
@@ -192,7 +244,7 @@ class CaptureService:
             ua = await self._browser.get_user_agent(page)
             await self._downloader.download_from_playlist(session.playlist, session, cookies, ua)
         else:
-            console.print(
+            self._log(
                 "[yellow]No playlist found after timeout — falling back to intercept mode.[/yellow]\n"
                 "[dim]Hint: make sure the video has started playing before pressing Enter.[/dim]"
             )
@@ -205,7 +257,7 @@ class CaptureService:
             if session.playlist:
                 return
             if i % 5 == 0 and i > 0:
-                console.print(
+                self._log(
                     f"[dim]  waiting... {i}s  "
                     f"m3u8_url={session.m3u8_url or 'not yet'}  "
                     f"playlist={'ready' if session.playlist else 'not yet'}[/dim]"
