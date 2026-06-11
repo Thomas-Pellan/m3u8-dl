@@ -1,0 +1,45 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "m3u8-dl"
+version = "0.1.0"
+requires-python = ">=3.12"
+dependencies = [
+    "click>=8.1",
+    "pydantic>=2.0",
+    "pydantic-settings>=2.0",
+    "httpx>=0.25",
+    "m3u8>=3.0",
+    "playwright>=1.40",
+    "rich>=13.0",
+    "anyio>=4.0",
+    # camoufox is intentionally not pinned here — see INSTALL below
+]
+
+[project.scripts]
+m3u8-dl = "m3u8_dl.cli:cli"
+
+[project.optional-dependencies]
+dev = ["pytest>=7", "pytest-asyncio>=0.23"]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/m3u8_dl"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+
+# ─── INSTALL ────────────────────────────────────────────────────────────────
+# 1. Install the JWriter20 stabilisation fork (recommended):
+#      pip install git+https://github.com/JWriter20/camoufox.git
+#    OR the official package:
+#      pip install "camoufox[geoip]"
+#    OR the CloverLabs fork (most active):
+#      pip install cloverlabs-camoufox
+#
+# 2. Download the Firefox binary:
+#      camoufox fetch
+#
+# 3. Install this package:
+#      pip install -e .
