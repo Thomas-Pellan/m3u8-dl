@@ -20,9 +20,11 @@ dependencies = [
 
 [project.scripts]
 m3u8-dl = "m3u8_dl.cli:cli"
+m3u8-dl-web = "m3u8_dl.web.app:main"
 
 [project.optional-dependencies]
 dev = ["pytest>=7", "pytest-asyncio>=0.23"]
+web = ["fastapi>=0.110", "uvicorn[standard]>=0.27", "python-multipart>=0.0.9"]
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/m3u8_dl"]
