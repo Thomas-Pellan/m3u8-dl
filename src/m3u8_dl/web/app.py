@@ -1,7 +1,7 @@
 import asyncio
 import re
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
@@ -24,6 +24,13 @@ _jobs: dict[str, dict[str, Any]] = {}
 _scheduled_tasks: dict[str, asyncio.Task] = {}
 _MAX_SCHEDULED = 10
 _PROGRESS_RE = re.compile(r"\((\d+)%\)")
+
+
+def _parse_fire_at(value: str) -> datetime:
+    dt = datetime.fromisoformat(value.replace("Z", "+00:00"))
+    if dt.tzinfo is None:
+        dt = dt.replace(tzinfo=timezone.utc)
+    return dt
 
 
 async def _run_job(
@@ -66,18 +73,18 @@ async def _schedule_job(
     parallel: int,
 ) -> None:
     try:
-        delay = (fire_at - datetime.now()).total_seconds()
+        delay = (fire_at - datetime.now(timezone.utc)).total_seconds()
+        print(f"[scheduler] job {job_id} registered — fire_at={fire_at} delay={delay:.1f}s", flush=True)
         if delay > 0:
             await asyncio.sleep(delay)
-        # Only fire if this is still the active task for this job (guards against reschedule races)
-        if (
-            job_id in _jobs
-            and _jobs[job_id].get("status") == "scheduled"
-            and _scheduled_tasks.get(job_id) is asyncio.current_task()
-        ):
+            print(f"[scheduler] job {job_id} sleep done, checking status", flush=True)
+        status = _jobs.get(job_id, {}).get("status")
+        print(f"[scheduler] job {job_id} status={status!r} — {'firing' if status == 'scheduled' else 'skipping'}", flush=True)
+        if status == "scheduled":
             await _run_job(job_id, url, output_name, mode, quality, parallel)
+            print(f"[scheduler] job {job_id} finished with status={_jobs.get(job_id, {}).get('status')!r}", flush=True)
     except asyncio.CancelledError:
-        pass
+        print(f"[scheduler] job {job_id} cancelled", flush=True)
     finally:
         if _scheduled_tasks.get(job_id) is asyncio.current_task():
             _scheduled_tasks.pop(job_id, None)
@@ -128,7 +135,7 @@ async def start_capture(
 
     if scheduled_at:
         try:
-            fire_at = datetime.fromisoformat(scheduled_at)
+            fire_at = _parse_fire_at(scheduled_at)
         except ValueError:
             raise HTTPException(status_code=422, detail="invalid scheduled_at format")
         sched_count = sum(1 for j in _jobs.values() if j["status"] == "scheduled")
@@ -182,7 +189,7 @@ async def clear_job(job_id: str) -> None:
         if task:
             task.cancel()
         del _jobs[job_id]
-    elif status == "error":
+    elif status in ("error", "done"):
         del _jobs[job_id]
     else:
         raise HTTPException(status_code=409, detail="job cannot be deleted in its current state")
@@ -223,11 +230,11 @@ async def reschedule_job(job_id: str, scheduled_at: str = Form(...)) -> JSONResp
     if _jobs[job_id]["status"] != "scheduled":
         raise HTTPException(status_code=409, detail="job is not in scheduled state")
     try:
-        fire_at = datetime.fromisoformat(scheduled_at)
+        fire_at = _parse_fire_at(scheduled_at)
     except ValueError:
         raise HTTPException(status_code=422, detail="invalid scheduled_at format")
 
-    old_task = _scheduled_tasks.pop(job_id, None)
+    old_task = _scheduled_tasks.get(job_id)
     if old_task:
         old_task.cancel()
 

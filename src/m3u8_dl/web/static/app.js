@@ -107,7 +107,10 @@ frm.addEventListener('submit', async e => {
   msg.textContent = 'Submitting…';
   const isScheduled = !!document.getElementById('scheduled-at').value;
   try {
-    const r = await fetch('/capture', {method: 'POST', body: new FormData(frm)});
+    const fd = new FormData(frm);
+    const dtVal = fd.get('scheduled_at');
+    if (dtVal) fd.set('scheduled_at', new Date(dtVal).toISOString());
+    const r = await fetch('/capture', {method: 'POST', body: fd});
     const j = await r.json();
     if (r.status === 429) throw new Error(j.detail || 'Scheduled job limit reached (max 10)');
     if (!r.ok) throw new Error(j.detail || r.statusText);
@@ -194,10 +197,42 @@ function renderScheduledJob(j) {
   q('.c-url').textContent  = j.url;
   q('.c-url').title        = j.url;
   q('.c-name').textContent = j.output_name || '';
-  q('.c-sched-at').textContent = (j.scheduled_at || '').replace('T', ' ');
+  if (j.scheduled_at) {
+    const d = new Date(j.scheduled_at);
+    q('.c-sched-at').textContent = d.toLocaleString(undefined, {dateStyle: 'short', timeStyle: 'short'});
+    const p = n => String(n).padStart(2, '0');
+    q('.reschedule-input').value = `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}T${p(d.getHours())}:${p(d.getMinutes())}`;
+  }
 
-  const input = q('.reschedule-input');
-  if (j.scheduled_at) input.value = j.scheduled_at;
+  if (j.status === 'scheduled') {
+    q('.sched-actions').hidden      = false;
+    q('.sched-post-actions').hidden = true;
+    q('.badge').hidden              = true;
+    q('.pct').hidden                = true;
+    q('.err').hidden                = true;
+  } else {
+    q('.sched-actions').hidden      = true;
+    const badge = q('.badge');
+    badge.hidden = false;
+    badge.classList.add(BADGE_CLASS[j.status] || 'p');
+    badge.textContent = j.status;
+
+    if (j.status === 'running' || j.status === 'pending') {
+      q('.sched-post-actions').hidden = true;
+      if (j.progress != null && j.status === 'running') {
+        const pct = q('.pct');
+        pct.hidden = false;
+        pct.textContent = j.progress + '%';
+      }
+    } else {
+      q('.sched-post-actions').hidden = false;
+      if (j.error) {
+        const err = q('.err');
+        err.hidden = false;
+        err.textContent = j.error;
+      }
+    }
+  }
 
   return frag;
 }
@@ -221,8 +256,8 @@ async function refresh() {
     const now      = 'updated ' + new Date().toLocaleTimeString();
     document.getElementById('tick').textContent = now;
 
-    const scheduled = entries.filter(j => j.status === 'scheduled');
-    const regular   = entries.filter(j => j.status !== 'scheduled');
+    const scheduled = entries.filter(j => j.scheduled_at);
+    const regular   = entries.filter(j => !j.scheduled_at);
 
     // ── scheduled panel ───────────────────────────────────────────────────────
     const schedEl   = document.getElementById('sched-jobs');
@@ -277,7 +312,7 @@ document.getElementById('sched-jobs').addEventListener('click', async e => {
   } else if (btn.classList.contains('abort-reschedule-btn')) {
     tr.querySelector('.reschedule-form').hidden = true;
     tr.querySelector('.sched-actions').hidden  = false;
-  } else if (btn.classList.contains('cancel-sched-btn')) {
+  } else if (btn.classList.contains('cancel-sched-btn') || btn.classList.contains('clear-sched-btn')) {
     btn.disabled = true;
     try {
       await fetch('/jobs/' + id, {method: 'DELETE'});
@@ -289,7 +324,7 @@ document.getElementById('sched-jobs').addEventListener('click', async e => {
     btn.disabled = true;
     try {
       const fd = new FormData();
-      fd.append('scheduled_at', input.value);
+      fd.append('scheduled_at', new Date(input.value).toISOString());
       const r = await fetch('/jobs/' + id + '/reschedule', {method: 'PATCH', body: fd});
       if (!r.ok) { const j = await r.json(); throw new Error(j.detail || r.statusText); }
       await refresh();
@@ -298,6 +333,27 @@ document.getElementById('sched-jobs').addEventListener('click', async e => {
     } finally { btn.disabled = false; }
   }
 });
+
+async function flushDoneError(btn, filterFn) {
+  btn.disabled = true;
+  try {
+    const jobs = await fetch('/jobs').then(r => r.json());
+    const targets = Object.values(jobs).filter(j =>
+      (j.status === 'done' || j.status === 'error') && filterFn(j)
+    );
+    await Promise.all(targets.map(j => fetch('/jobs/' + j.id, {method: 'DELETE'})));
+    await refresh();
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+document.getElementById('flush-sched-btn').addEventListener('click', e =>
+  flushDoneError(e.currentTarget, j => !!j.scheduled_at)
+);
+document.getElementById('flush-jobs-btn').addEventListener('click', e =>
+  flushDoneError(e.currentTarget, j => !j.scheduled_at)
+);
 
 refresh();
 setInterval(refresh, 3000);
