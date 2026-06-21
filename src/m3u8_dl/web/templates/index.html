@@ -14,36 +14,68 @@
   <div class="card">
     <div class="card-title">New capture</div>
     <form id="frm">
-      <label>Stream page URL <span style="color:#c0392b">*</span></label>
-      <input type="url" name="url" placeholder="https://example.com/watch/movie" required>
 
-      <label>Output filename (without .mp4) <span style="color:#c0392b">*</span></label>
-      <input type="text" name="output_name" placeholder="interstellar-2014" required>
-
-      <div class="row">
-        <div>
-          <label>Capture mode</label>
-          <select name="mode">
-            <option value="auto">auto</option>
-            <option value="direct">direct</option>
-          </select>
+      <!-- Step 1: URL -->
+      <div id="step-url">
+        <label>Stream page URL <span style="color:#c0392b">*</span></label>
+        <div class="url-row">
+          <input type="url" name="url" id="url-input" placeholder="https://example.com/watch/movie" required>
+          <button type="button" id="clear-url-btn" class="btn-clear-url" title="Clear URL">×</button>
+          <button class="btn-fetch" type="button" id="fetch-btn">Fetch names →</button>
         </div>
-        <div>
-          <label>Quality</label>
-          <select name="quality">
-            <option value="best">best</option>
-            <option value="worst">worst</option>
-          </select>
-        </div>
-        <div>
-          <label>Parallel downloads</label>
-          <input type="number" name="parallel" value="4" min="1" max="16">
-        </div>
+        <p id="fetch-msg"></p>
+        <button type="button" id="skip-btn" class="btn-link">skip →</button>
       </div>
 
-      <button class="btn" type="submit" id="btn">Start capture</button>
-      <p id="msg"></p>
+      <!-- Step 2: name + options -->
+      <div id="step-config" hidden>
+        <div class="url-confirm">
+          <span id="url-display"></span>
+          <button type="button" id="change-url-btn" class="btn-link">↩ change URL</button>
+        </div>
+
+        <label>Output filename (without .mp4) <span style="color:#c0392b">*</span></label>
+        <input type="text" name="output_name" id="output-name" placeholder="interstellar-2014" required list="name-list" autocomplete="off">
+        <datalist id="name-list"></datalist>
+        <div id="name-hints"></div>
+
+        <div class="row">
+          <div>
+            <label>Capture mode</label>
+            <select name="mode">
+              <option value="auto">auto</option>
+              <option value="direct">direct</option>
+            </select>
+          </div>
+          <div>
+            <label>Quality</label>
+            <select name="quality">
+              <option value="best">best</option>
+              <option value="worst">worst</option>
+            </select>
+          </div>
+          <div>
+            <label>Parallel downloads</label>
+            <input type="number" name="parallel" value="4" min="1" max="16">
+          </div>
+        </div>
+
+        <label>Schedule for <span class="opt-label">(optional — leave blank to run immediately)</span></label>
+        <input type="datetime-local" name="scheduled_at" id="scheduled-at">
+
+        <button class="btn" type="submit" id="btn">Start capture</button>
+        <p id="msg"></p>
+      </div>
+
     </form>
+  </div>
+
+  <div class="card">
+    <div class="jh">
+      <span class="card-title">Scheduled</span>
+      <span class="jh-tick" id="sched-tick"></span>
+    </div>
+    <div id="sched-jobs"><p class="empty">No scheduled jobs.</p></div>
   </div>
 
   <div class="card">
@@ -54,6 +86,52 @@
     <div id="jobs"><p class="empty">No jobs yet.</p></div>
   </div>
 </div>
+
+<template id="tpl-job-row">
+  <tr>
+    <td class="c-id"></td>
+    <td class="c-url"></td>
+    <td class="c-name"></td>
+    <td class="c-time"></td>
+    <td class="c-st">
+      <span class="badge"></span>
+      <span class="pct"></span>
+      <div class="err"></div>
+      <div class="job-actions">
+        <button class="act-btn retry-btn">Retry</button>
+        <button class="act-btn clear-btn">Clear</button>
+      </div>
+      <div class="out"></div>
+      <div class="logs"></div>
+    </td>
+  </tr>
+</template>
+
+<template id="tpl-sched-row">
+  <tr>
+    <td class="c-id"></td>
+    <td class="c-url"></td>
+    <td class="c-name"></td>
+    <td class="c-sched-at"></td>
+    <td class="c-st">
+      <div class="sched-actions">
+        <button class="act-btn reschedule-btn">Reschedule</button>
+        <button class="act-btn cancel-sched-btn">Cancel</button>
+      </div>
+      <div class="reschedule-form" hidden>
+        <input type="datetime-local" class="reschedule-input">
+        <div class="reschedule-btns">
+          <button class="act-btn confirm-reschedule-btn">Confirm</button>
+          <button class="act-btn abort-reschedule-btn">Abort</button>
+        </div>
+      </div>
+    </td>
+  </tr>
+</template>
+
+<template id="tpl-hint-chip">
+  <button type="button" class="hint-chip"></button>
+</template>
 
 <script src="/static/app.js"></script>
 </body>
