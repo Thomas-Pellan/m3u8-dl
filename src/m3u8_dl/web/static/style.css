@@ -43,3 +43,34 @@ td{padding:.42rem .45rem;border-bottom:1px solid #191919;vertical-align:top;max-
 .retry-btn:hover:not(:disabled){opacity:.75}
 .clear-btn{background:#2e1a1a;color:#ff5555}
 .clear-btn:hover:not(:disabled){opacity:.75}
+.url-row{display:flex;gap:.5rem;align-items:flex-start}
+.btn-clear-url{background:none;border:1px solid #2d2d2d;border-radius:3px;color:#555;cursor:pointer;font-family:inherit;font-size:1rem;line-height:1;padding:.35rem .55rem;flex-shrink:0;transition:border-color .15s,color .15s}
+.btn-clear-url:hover{border-color:#ff5555;color:#ff5555}
+.url-row input{flex:1}
+.btn-fetch{background:#00d7af;border:none;border-radius:3px;color:#0d0d0d;cursor:pointer;font-family:inherit;font-size:.87rem;font-weight:700;padding:.45rem .9rem;white-space:nowrap;transition:opacity .15s;margin-top:0}
+.btn-fetch:hover{opacity:.85}
+.btn-fetch:disabled{background:#252525;color:#555;cursor:default;opacity:1}
+.btn-link{background:none;border:none;color:#444;cursor:pointer;font-family:inherit;font-size:.72rem;padding:0;transition:color .15s;display:inline-block;margin-top:.45rem}
+.btn-link:hover{color:#00d7af}
+#fetch-msg{margin-top:.45rem;font-size:.75rem;min-height:1em}
+.url-confirm{background:#0d0d0d;border:1px solid #2d2d2d;border-radius:3px;padding:.4rem .65rem;font-size:.8rem;display:flex;justify-content:space-between;align-items:center;gap:.5rem;margin-bottom:.8rem}
+.url-confirm span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#7ab8ff;flex:1}
+.url-confirm .btn-link{margin-top:0;flex-shrink:0}
+#name-hints{margin-top:.4rem;margin-bottom:.4rem;display:flex;flex-wrap:wrap;gap:.35rem;min-height:0}
+.hint-chip{background:#141414;border:1px solid #2d2d2d;border-radius:2px;color:#777;cursor:pointer;font-family:inherit;font-size:.72rem;padding:.2rem .55rem;transition:border-color .15s,color .15s}
+.hint-chip:hover{border-color:#00d7af;color:#00d7af}
+.hint-chip.hint-active{border-color:#00d7af;color:#00d7af}
+.opt-label{color:#444;font-weight:400}
+.c-sched-at{width:18%;white-space:nowrap;color:#aaaa00;font-size:.73rem}
+.reschedule-form{margin-top:.3rem}
+.reschedule-input{width:100%;font-size:.72rem;padding:.25rem .4rem;margin-bottom:.3rem;background:#0d0d0d;border:1px solid #2d2d2d;border-radius:3px;color:#d8d8d8;font-family:inherit;outline:none}
+.reschedule-input:focus{border-color:#00d7af}
+.reschedule-btns{display:flex;gap:.35rem}
+.reschedule-btn{background:#1a1a2e;color:#7ab8ff}
+.reschedule-btn:hover:not(:disabled){opacity:.75}
+.confirm-reschedule-btn{background:#1a2e1a;color:#00cc66}
+.confirm-reschedule-btn:hover:not(:disabled){opacity:.75}
+.abort-reschedule-btn{background:#252525;color:#666}
+.abort-reschedule-btn:hover:not(:disabled){opacity:.75}
+.cancel-sched-btn{background:#2e1a1a;color:#ff5555}
+.cancel-sched-btn:hover:not(:disabled){opacity:.75}

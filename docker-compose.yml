@@ -6,13 +6,10 @@ services:
         UID: "${UID:-1000}"
         GID: "${GID:-1000}"
     user: "${UID:-1000}:${GID:-1000}"
+    init: true
     ports:
-      - "8080:8080"
+      - "${M3U8DL_PORT}:8080"
     volumes:
-      - ./movies:/output     # downloaded .mp4 files land here
+      - ${M3U8DL_OUTPUT_DIR}:/output     # downloaded .mp4 files land here
     environment:
-      M3U8DL_OUTPUT_DIR: /output
       M3U8DL_HEADLESS: "true"
-      M3U8DL_CAPTURE_MODE: auto
-      M3U8DL_PREFERRED_QUALITY: best
-      M3U8DL_MAX_PARALLEL_DOWNLOADS: "6"
