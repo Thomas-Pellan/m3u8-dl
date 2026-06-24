@@ -1,0 +1,228 @@
+@use 'variables' as v;
+@use 'mixins' as m;
+
+// ── Sessions tab ──────────────────────────────────────────────────────────────
+
+.sessions-empty {
+  color: v.$clr-text-faint;
+  font-size: v.$fs-base;
+  line-height: 1.65;
+  margin-top: v.$sp-6;
+}
+
+.sessions-list {
+  display: flex;
+  flex-direction: column;
+  gap: v.$sp-5;
+}
+
+// ── Session row ───────────────────────────────────────────────────────────────
+
+.session-row {
+  background: v.$clr-bg-card;
+  border: 1px solid v.$clr-border-card;
+  border-radius: v.$r-lg;
+  padding: v.$sp-5 v.$sp-6;
+  display: flex;
+  flex-direction: column;
+  gap: v.$sp-4;
+
+  &--active { border-color: #2a2a1a; }
+}
+
+.session-row-header {
+  display: flex;
+  align-items: center;
+  gap: v.$sp-3;
+  min-width: 0;
+}
+
+.session-status-badge {
+  flex-shrink: 0;
+  border-radius: v.$r-sm;
+  font-size: v.$fs-2xs;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  padding: 0.1rem 0.4rem;
+  text-transform: uppercase;
+
+  &.session-status--opening  { background: v.$clr-badge-pending-bg; color: v.$clr-text-muted; }
+  &.session-status--active   { background: v.$clr-badge-running-bg; color: v.$clr-accent-green; }
+  &.session-status--closed   { background: #1a1a1a; color: v.$clr-text-faint; }
+  &.session-status--error    { background: v.$clr-badge-error-bg; color: v.$clr-error; }
+}
+
+.session-closing-badge {
+  flex-shrink: 0;
+  border-radius: v.$r-sm;
+  font-size: v.$fs-2xs;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  padding: 0.1rem 0.4rem;
+  background: #1a1200;
+  color: v.$clr-warn-text;
+  border: 1px solid #332200;
+}
+
+.session-row-url {
+  flex: 1;
+  color: v.$clr-url;
+  font-size: v.$fs-base;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+
+.session-row-id {
+  color: v.$clr-text-faint;
+  font-size: v.$fs-xs;
+  flex-shrink: 0;
+}
+
+// ── Downloads inside a session ────────────────────────────────────────────────
+
+.session-downloads {
+  display: flex;
+  flex-direction: column;
+  gap: v.$sp-2;
+  border-top: 1px solid v.$clr-border;
+  padding-top: v.$sp-3;
+}
+
+.dl-row {
+  display: grid;
+  grid-template-columns: 0.6rem 1fr auto auto;
+  grid-template-rows: auto auto auto;
+  align-items: center;
+  column-gap: v.$sp-3;
+  row-gap: v.$sp-1;
+
+  &--done    { opacity: 0.6; }
+  &--cancelled { opacity: 0.4; }
+}
+
+.dl-status-dot {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 50%;
+  flex-shrink: 0;
+
+  .dl-dot--running   & { background: v.$clr-accent; }
+  .dl-dot--assembling & { background: v.$clr-warn-text; }
+  .dl-dot--done      & { background: v.$clr-accent-green; }
+  .dl-dot--error     & { background: v.$clr-error; }
+  .dl-dot--cancelled & { background: v.$clr-text-faint; }
+}
+
+// dot coloring belongs on the element itself, not its parent
+.dl-dot--running    { background: v.$clr-accent; }
+.dl-dot--assembling { background: v.$clr-warn-text; }
+.dl-dot--done       { background: v.$clr-accent-green; }
+.dl-dot--error      { background: v.$clr-error; }
+.dl-dot--cancelled  { background: v.$clr-text-faint; }
+
+.dl-name {
+  color: v.$clr-text;
+  font-size: v.$fs-base;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dl-segments {
+  color: v.$clr-text-faint;
+  font-size: v.$fs-xs;
+  flex-shrink: 0;
+}
+
+.dl-label {
+  color: v.$clr-text-muted;
+  font-size: v.$fs-xs;
+  flex-shrink: 0;
+  min-width: 2.5rem;
+  text-align: right;
+}
+
+.dl-bar-wrap {
+  grid-column: 2 / -1;
+  height: 3px;
+  background: v.$clr-border;
+  border-radius: 99px;
+  overflow: hidden;
+}
+
+.dl-bar {
+  height: 100%;
+  border-radius: 99px;
+  transition: width 0.3s ease;
+
+  &--running    { background: v.$clr-accent; }
+  &--assembling { background: v.$clr-warn-text; }
+  &--done       { background: v.$clr-accent-green; }
+}
+
+.dl-logs {
+  grid-column: 2 / -1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  margin-top: v.$sp-1;
+}
+
+.dl-log-line {
+  color: v.$clr-text-faint;
+  font-family: v.$font-mono;
+  font-size: v.$fs-xs;
+  line-height: 1.5;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dl-error {
+  grid-column: 2 / -1;
+  color: v.$clr-error;
+  font-size: v.$fs-xs;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+// ── Download confirm row ──────────────────────────────────────────────────────
+
+.dl-confirm-row {
+  grid-column: 2 / -1;
+  display: flex;
+  align-items: center;
+  gap: v.$sp-2;
+  margin-top: v.$sp-2;
+}
+
+.dl-confirm-question {
+  color: v.$clr-text-faint;
+  font-size: v.$fs-xs;
+  margin-right: v.$sp-1;
+}
+
+.dl-ok-btn      { @include m.action-btn(#0a1f0f, v.$clr-accent-green); font-size: v.$fs-xs; padding: 0.15rem v.$sp-3; }
+.dl-wrong-btn   { @include m.action-btn(#1f0a0a, v.$clr-error); font-size: v.$fs-xs; padding: 0.15rem v.$sp-3; }
+.dl-confirm-yes-btn { @include m.action-btn(#2e0d0d, v.$clr-error); font-size: v.$fs-xs; padding: 0.15rem v.$sp-3; }
+.dl-confirm-no-btn  { @include m.action-btn(v.$clr-bg, v.$clr-text-muted); border: 1px solid v.$clr-border; font-size: v.$fs-xs; padding: 0.15rem v.$sp-3; }
+
+// ── Session row actions ───────────────────────────────────────────────────────
+
+.session-row-actions {
+  display: flex;
+  align-items: center;
+  gap: v.$sp-3;
+  flex-wrap: wrap;
+  border-top: 1px solid v.$clr-border;
+  padding-top: v.$sp-3;
+}
+
+.session-kill-warning {
+  color: v.$clr-error;
+  font-size: v.$fs-xs;
+  flex: 1;
+}

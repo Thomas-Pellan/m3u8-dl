@@ -1,0 +1,36 @@
+@use 'variables' as v;
+@use 'mixins' as m;
+
+body {
+  background: v.$clr-bg;
+  color: v.$clr-text;
+  font-family: v.$font-mono;
+  min-height: 100vh;
+  padding: v.$sp-7 v.$sp-4;
+
+  @include m.respond-md {
+    padding: v.$sp-9 v.$sp-4;
+  }
+}
+
+.wrap {
+  width: 100%;
+
+  @include m.respond-md {
+    max-width: 95%;
+    margin: 0 auto;
+  }
+}
+
+h1 {
+  color: v.$clr-accent;
+  font-size: v.$fs-2xl;
+  letter-spacing: 0.03em;
+}
+
+.sub {
+  color: v.$clr-text-faint;
+  font-size: v.$fs-body;
+  margin-top: v.$sp-1;
+  margin-bottom: v.$sp-9;
+}

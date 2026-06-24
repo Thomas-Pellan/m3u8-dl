@@ -1,0 +1,216 @@
+@use 'variables' as v;
+
+// ── Card header ───────────────────────────────────────────────────────────────
+
+.websites-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: v.$sp-5;
+  margin-bottom: v.$sp-7;
+
+  .card-title {
+    margin-bottom: 0;
+  }
+}
+
+// ── Empty state ───────────────────────────────────────────────────────────────
+
+.websites-empty {
+  color: v.$clr-text-faint;
+  font-size: v.$fs-base;
+  line-height: 1.65;
+  margin-top: v.$sp-4;
+}
+
+// ── List ──────────────────────────────────────────────────────────────────────
+
+.websites-list {
+  display: flex;
+  flex-direction: column;
+  gap: v.$sp-5;
+}
+
+// ── Row ───────────────────────────────────────────────────────────────────────
+
+.website-row {
+  background: v.$clr-bg;
+  border: 1px solid v.$clr-border;
+  border-radius: v.$r-lg;
+  padding: v.$sp-5 v.$sp-6;
+  display: flex;
+  flex-direction: column;
+  gap: v.$sp-4;
+  transition: border-color v.$tr;
+
+  &--broken {
+    border-color: #2a1a1a;
+    opacity: 0.7;
+  }
+}
+
+.website-row-top {
+  display: flex;
+  align-items: center;
+  gap: v.$sp-4;
+  min-width: 0;
+}
+
+.website-name {
+  color: v.$clr-url;
+  font-size: v.$fs-body;
+  font-weight: 600;
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-decoration: none;
+  min-width: 0;
+
+  &:hover { text-decoration: underline; }
+}
+
+.website-source {
+  flex-shrink: 0;
+  border-radius: v.$r-sm;
+  font-size: v.$fs-2xs;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  padding: 0.1rem 0.4rem;
+  text-transform: uppercase;
+
+  &--simple   { background: #0f1f2a; color: v.$clr-url; }
+  &--captured { background: #1a1f0a; color: v.$clr-accent; }
+}
+
+.website-count {
+  flex-shrink: 0;
+  color: v.$clr-text-faint;
+  font-size: v.$fs-xs;
+}
+
+.website-date {
+  flex-shrink: 0;
+  color: v.$clr-text-dim;
+  font-size: v.$fs-xs;
+}
+
+// ── Row bottom ────────────────────────────────────────────────────────────────
+
+.website-row-bottom {
+  display: flex;
+  align-items: center;
+  gap: v.$sp-4;
+  flex-wrap: wrap;
+}
+
+// ── Star rating ───────────────────────────────────────────────────────────────
+
+.star-rating {
+  display: flex;
+  gap: v.$sp-1;
+}
+
+.star-btn {
+  background: none;
+  border: none;
+  color: v.$clr-text-dim;
+  cursor: pointer;
+  font-size: 1rem;
+  line-height: 1;
+  padding: 0 0.05rem;
+  transition: color v.$tr, transform v.$tr;
+
+  &:hover { color: v.$clr-warn-text; transform: scale(1.15); }
+  &--on   { color: v.$clr-warn-text; }
+}
+
+// ── Working button ────────────────────────────────────────────────────────────
+
+.website-working-btn {
+  border: 1px solid v.$clr-border;
+  border-radius: v.$r-md;
+  cursor: pointer;
+  font-family: v.$font-mono;
+  font-size: v.$fs-xs;
+  font-weight: 700;
+  padding: 0.15rem v.$sp-4;
+  transition: background v.$tr, border-color v.$tr, color v.$tr;
+
+  &--ok {
+    background: #0a1f0f;
+    border-color: #1a3a1a;
+    color: v.$clr-accent-green;
+
+    &:hover { background: #0f2a14; border-color: v.$clr-accent-green; }
+  }
+
+  &--nok {
+    background: #1f0a0a;
+    border-color: #3a1a1a;
+    color: v.$clr-error;
+
+    &:hover { background: #2a0f0f; border-color: v.$clr-error; }
+  }
+}
+
+// ── CDN info ──────────────────────────────────────────────────────────────────
+
+.website-cdn-info {
+  display: inline-flex;
+  align-items: center;
+  gap: v.$sp-2;
+}
+
+.website-cdn-count {
+  color: v.$clr-text-faint;
+  font-size: v.$fs-xs;
+}
+
+.website-cdn-flush-btn {
+  background: none;
+  border: 1px solid v.$clr-border;
+  border-radius: v.$r-sm;
+  color: v.$clr-text-faint;
+  cursor: pointer;
+  font-size: v.$fs-2xs;
+  padding: 0.1rem v.$sp-2;
+  transition: border-color v.$tr, color v.$tr;
+
+  &:hover:not(:disabled) { border-color: v.$clr-error; color: v.$clr-error; }
+  &:disabled { opacity: 0.5; cursor: default; }
+}
+
+// ── Open captured button ──────────────────────────────────────────────────────
+
+.website-open-btn {
+  background: #0f1a2a;
+  border: 1px solid #1a2e44;
+  border-radius: v.$r-md;
+  color: v.$clr-url;
+  cursor: pointer;
+  font-family: v.$font-mono;
+  font-size: v.$fs-xs;
+  font-weight: 700;
+  padding: 0.15rem v.$sp-4;
+  transition: background v.$tr, border-color v.$tr;
+
+  &:hover { background: #1a2a3a; border-color: v.$clr-url; }
+}
+
+// ── Delete button ─────────────────────────────────────────────────────────────
+
+.website-del-btn {
+  background: none;
+  border: 1px solid v.$clr-border;
+  border-radius: v.$r-md;
+  color: v.$clr-text-faint;
+  cursor: pointer;
+  font-family: v.$font-mono;
+  font-size: v.$fs-xs;
+  padding: 0.15rem v.$sp-3;
+  transition: border-color v.$tr, color v.$tr;
+  margin-left: auto;
+
+  &:hover { border-color: v.$clr-error; color: v.$clr-error; }
+}

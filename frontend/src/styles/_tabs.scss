@@ -1,0 +1,59 @@
+@use 'variables' as v;
+@use 'mixins' as m;
+
+.tab-bar {
+  display: flex;
+  border-bottom: 1px solid v.$clr-border;
+  margin-bottom: v.$sp-7;
+  gap: 0;
+}
+
+.tab-btn {
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: v.$clr-text-faint;
+  cursor: pointer;
+  font-family: v.$font-mono;
+  font-size: v.$fs-body;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  padding: v.$sp-4 v.$sp-7;
+  margin-bottom: -1px;
+  text-transform: uppercase;
+  transition: color v.$tr, border-color v.$tr;
+
+  &:hover:not(.tab-active) {
+    color: v.$clr-text-muted;
+  }
+}
+
+.tab-active {
+  border-bottom-color: v.$clr-accent;
+  color: v.$clr-accent;
+}
+
+.tab-content {
+  padding-top: v.$sp-4;
+}
+
+// ── Captured placeholder ──────────────────────────────────────────────────────
+
+.captured-placeholder {
+  padding: v.$sp-9;
+  text-align: center;
+}
+
+.captured-desc {
+  color: v.$clr-text-faint;
+  font-size: v.$fs-body;
+  line-height: 1.7;
+  max-width: 52ch;
+  margin: v.$sp-6 auto 0;
+}
+
+.captured-coming {
+  color: v.$clr-text-dim;
+  font-size: v.$fs-base;
+  margin-top: v.$sp-7;
+}

@@ -1,9 +1,27 @@
+# Python / backend
+backend/.env
+backend/.venv/
+backend/**/__pycache__/
+backend/**/*.py[cod]
+backend/**/*.egg-info/
+
+# Working fiels and folders
 .env
 .venv/
-__pycache__/
-*.py[cod]
-*.egg-info/
+.idea/
+
+# Build artefacts
 dist/
 build/
+
+# Downloaded media (local dev)
 movies/
 temp/
+
+# Accidental tilde-as-relative-path directory
+~/
+
+# Frontend
+frontend/node_modules/
+frontend/dist/
+frontend/.env.local

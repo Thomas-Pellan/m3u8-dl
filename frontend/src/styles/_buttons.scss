@@ -1,0 +1,126 @@
+@use 'variables' as v;
+@use 'mixins' as m;
+
+// ── Primary submit ────────────────────────────────────────────────────────────
+
+.btn {
+  margin-top: v.$sp-7;
+  width: 100%;
+  background: v.$clr-accent;
+  border: none;
+  border-radius: v.$r-md;
+  color: v.$clr-bg;
+  cursor: pointer;
+  font-family: v.$font-mono;
+  font-size: v.$fs-xl;
+  font-weight: 700;
+  padding: v.$sp-4;
+  transition: opacity v.$tr;
+
+  &:hover:not(:disabled) { opacity: 0.85; }
+
+  &:disabled {
+    background: v.$clr-bg-btn-dis;
+    color: v.$clr-text-dis;
+    cursor: default;
+  }
+}
+
+// ── Fetch names ───────────────────────────────────────────────────────────────
+
+.btn-fetch {
+  background: v.$clr-accent;
+  border: none;
+  border-radius: v.$r-md;
+  color: v.$clr-bg;
+  cursor: pointer;
+  font-family: v.$font-mono;
+  font-size: v.$fs-xl;
+  font-weight: 700;
+  padding: v.$sp-3 v.$sp-6;
+  white-space: nowrap;
+  transition: opacity v.$tr;
+
+  &:hover:not(:disabled) { opacity: 0.85; }
+
+  &:disabled {
+    background: v.$clr-bg-btn-dis;
+    color: v.$clr-text-dis;
+    cursor: default;
+  }
+}
+
+// ── Clear URL ─────────────────────────────────────────────────────────────────
+
+.btn-clear-url {
+  background: none;
+  border: 1px solid v.$clr-border;
+  border-radius: v.$r-md;
+  color: v.$clr-text-faint;
+  cursor: pointer;
+  font-family: v.$font-mono;
+  font-size: v.$fs-xl;
+  line-height: 1;
+  padding: 0.35rem 0.55rem;
+  flex-shrink: 0;
+  transition: border-color v.$tr, color v.$tr;
+
+  &:hover { border-color: v.$clr-error; color: v.$clr-error; }
+}
+
+// ── Text link ─────────────────────────────────────────────────────────────────
+
+.btn-link {
+  background: none;
+  border: none;
+  color: v.$clr-text-dim;
+  cursor: pointer;
+  font-family: v.$font-mono;
+  font-size: v.$fs-md;
+  padding: 0;
+  transition: color v.$tr;
+  display: inline-block;
+  margin-top: v.$sp-3;
+
+  &:hover { color: v.$clr-accent; }
+}
+
+// ── Flush ─────────────────────────────────────────────────────────────────────
+
+.btn-flush {
+  background: none;
+  border: 1px solid v.$clr-border;
+  border-radius: v.$r-md;
+  color: v.$clr-text-faint;
+  cursor: pointer;
+  font-family: v.$font-mono;
+  font-size: v.$fs-xs;
+  padding: 0.15rem v.$sp-4;
+  transition: border-color v.$tr, color v.$tr;
+
+  &:hover { border-color: v.$clr-error; color: v.$clr-error; }
+  &:disabled { opacity: 0.4; cursor: default; }
+}
+
+// ── Action buttons ────────────────────────────────────────────────────────────
+
+.act-btn {
+  border: none;
+  border-radius: v.$r-sm;
+  cursor: pointer;
+  font-family: v.$font-mono;
+  font-size: v.$fs-sm;
+  font-weight: 700;
+  padding: 0.15rem v.$sp-3;
+  transition: opacity v.$tr;
+
+  &:disabled { opacity: 0.4; cursor: default; }
+}
+
+.retry-btn           { @include m.action-btn(v.$clr-btn-retry,   v.$clr-accent-green); }
+.clear-btn           { @include m.action-btn(v.$clr-btn-clear,   v.$clr-error); }
+.reschedule-btn      { @include m.action-btn(v.$clr-btn-resched, v.$clr-url); }
+.confirm-reschedule-btn { @include m.action-btn(v.$clr-btn-confirm, v.$clr-accent-green); }
+.abort-reschedule-btn   { @include m.action-btn(v.$clr-btn-abort,   #666); }
+.cancel-sched-btn    { @include m.action-btn(v.$clr-btn-clear,   v.$clr-error); }
+.clear-sched-btn     { @include m.action-btn(v.$clr-btn-clear,   v.$clr-error); }

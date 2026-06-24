@@ -1,0 +1,78 @@
+// ── Breakpoints ───────────────────────────────────────────────────────────────
+$bp-sm: 480px;
+$bp-md: 768px;
+$bp-lg: 1024px;
+
+// ── Colors ────────────────────────────────────────────────────────────────────
+$clr-bg:           #0d0d0d;
+$clr-bg-card:      #141414;
+$clr-bg-logs:      #0a0a0a;
+$clr-bg-btn-dis:   #252525;
+
+$clr-border:       #2d2d2d;
+$clr-border-card:  #292929;
+$clr-border-th:    #1e1e1e;
+$clr-border-td:    #191919;
+
+$clr-text:         #d8d8d8;
+$clr-text-muted:   #999;
+$clr-text-label:   #666;
+$clr-text-faint:   #555;
+$clr-text-dim:     #444;
+$clr-text-tick:    #383838;
+$clr-text-name:    #bbb;
+$clr-text-dis:     #555;
+
+$clr-accent:       #00d7af;
+$clr-accent-green: #00cc66;
+$clr-url:          #7ab8ff;
+$clr-warn:         #aaaa00;
+$clr-error:        #ff5555;
+$clr-error-dim:    #cc4444;
+$clr-warn-text:    #ffaa00;
+$clr-req:          #c0392b;
+
+// badge backgrounds
+$clr-badge-pending-bg: #1f1f10;
+$clr-badge-running-bg: #0f1f0f;
+$clr-badge-done-bg:    #0f1f1a;
+$clr-badge-error-bg:   #1f0f0f;
+
+// action button backgrounds
+$clr-btn-retry:   #1a2e1a;
+$clr-btn-clear:   #2e1a1a;
+$clr-btn-resched: #1a1a2e;
+$clr-btn-confirm: #1a2e1a;
+$clr-btn-abort:   #252525;
+
+// ── Spacing ───────────────────────────────────────────────────────────────────
+$sp-1: 0.2rem;
+$sp-2: 0.35rem;
+$sp-3: 0.45rem;
+$sp-4: 0.5rem;
+$sp-5: 0.65rem;
+$sp-6: 0.85rem;
+$sp-7: 1.1rem;
+$sp-8: 1.4rem;
+$sp-9: 2rem;
+
+// ── Typography ────────────────────────────────────────────────────────────────
+$font-mono: 'SF Mono', Consolas, 'Courier New', monospace;
+
+$fs-2xs: 0.67rem;
+$fs-xs:  0.68rem;
+$fs-sm:  0.7rem;
+$fs-md:  0.72rem;
+$fs-base: 0.75rem;
+$fs-body: 0.78rem;
+$fs-lg:  0.8rem;
+$fs-xl:  0.87rem;
+$fs-2xl: 1.4rem;
+
+// ── Radii ─────────────────────────────────────────────────────────────────────
+$r-sm: 2px;
+$r-md: 3px;
+$r-lg: 6px;
+
+// ── Transitions ───────────────────────────────────────────────────────────────
+$tr: 0.15s;

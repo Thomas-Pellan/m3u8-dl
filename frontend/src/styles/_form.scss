@@ -1,0 +1,148 @@
+@use 'variables' as v;
+@use 'mixins' as m;
+
+label {
+  display: block;
+  font-size: v.$fs-base;
+  color: v.$clr-text-label;
+  margin-bottom: v.$sp-2;
+  margin-top: v.$sp-6;
+
+  &:first-of-type { margin-top: 0; }
+}
+
+input,
+select {
+  @include m.input-base;
+}
+
+input[type='url'] { color: v.$clr-url; }
+
+.req { color: v.$clr-req; }
+
+.opt-label {
+  color: v.$clr-text-dim;
+  font-weight: 400;
+}
+
+// ── URL step ──────────────────────────────────────────────────────────────────
+
+.url-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: v.$sp-4;
+  align-items: flex-start;
+
+  input { flex: 1; min-width: 0; }
+
+  @include m.respond-sm {
+    flex-wrap: nowrap;
+  }
+}
+
+.url-confirm {
+  background: v.$clr-bg;
+  border: 1px solid v.$clr-border;
+  border-radius: v.$r-md;
+  padding: v.$sp-3 v.$sp-5;
+  font-size: v.$fs-lg;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: v.$sp-4;
+  margin-bottom: v.$sp-6;
+
+  span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: v.$clr-url;
+    flex: 1;
+  }
+
+  .btn-link { margin-top: 0; flex-shrink: 0; }
+}
+
+// ── Name hints ────────────────────────────────────────────────────────────────
+
+.name-hints {
+  margin-top: v.$sp-3;
+  margin-bottom: v.$sp-3;
+  display: flex;
+  flex-wrap: wrap;
+  gap: v.$sp-2;
+}
+
+.hint-chip {
+  background: v.$clr-bg-card;
+  border: 1px solid v.$clr-border;
+  border-radius: v.$r-sm;
+  color: #777;
+  cursor: pointer;
+  font-family: v.$font-mono;
+  font-size: v.$fs-md;
+  padding: v.$sp-1 v.$sp-4;
+  transition: border-color v.$tr, color v.$tr;
+
+  &:hover { border-color: v.$clr-accent; color: v.$clr-accent; }
+}
+
+.hint-active {
+  border-color: v.$clr-accent !important;
+  color: v.$clr-accent !important;
+}
+
+// ── Capture options grid ──────────────────────────────────────────────────────
+
+.row {
+  display: flex;
+  flex-direction: column;
+  gap: v.$sp-6;
+
+  @include m.respond-md {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+// ── Messages ──────────────────────────────────────────────────────────────────
+
+.msg-info  { margin-top: v.$sp-3; font-size: v.$fs-base; color: v.$clr-text-faint; min-height: 1em; }
+.msg-error { margin-top: v.$sp-3; font-size: v.$fs-base; color: v.$clr-error; min-height: 1em; }
+.msg-ok    { margin-top: v.$sp-4; font-size: v.$fs-base; color: v.$clr-accent; text-align: center; min-height: 1em; }
+
+.field-error {
+  margin-top: v.$sp-2;
+  font-size: v.$fs-md;
+  color: v.$clr-error;
+}
+
+.field-error-inline {
+  margin-left: v.$sp-3;
+  font-size: v.$fs-md;
+  font-weight: 400;
+  color: v.$clr-error;
+}
+
+input.input-invalid,
+select.input-invalid {
+  border-color: v.$clr-error;
+
+  &:focus { border-color: v.$clr-error; box-shadow: 0 0 0 2px rgba(255 85 85 / 25%); }
+}
+
+// ── Reschedule inline form ────────────────────────────────────────────────────
+
+.reschedule-form { margin-top: v.$sp-2; }
+
+.reschedule-input {
+  @include m.input-base;
+  font-size: v.$fs-md;
+  padding: v.$sp-2 v.$sp-3;
+  margin-bottom: v.$sp-2;
+}
+
+.reschedule-btns {
+  display: flex;
+  gap: v.$sp-2;
+}
