@@ -1,265 +1,171 @@
 # m3u8-dl
 
-Captures HLS streams (m3u8 + ts segments) from a website page (that can use some anti bot protections) and assembles them into a local MP4 file.
+Captures HLS streams (m3u8 + TS segments) from websites and assembles them into local MP4 files.
 
-Uses [camoufox](https://github.com/daijro/camoufox) to spoof a real Firefox fingerprint and avoid bans, with Playwright response interception to detect and save video segments.
+Uses [camoufox](https://github.com/daijro/camoufox) to spoof a real Firefox fingerprint and bypass bot-protection, with Playwright response interception to detect and save video segments.
 
 ---
 
 ## About AI
 
-This project is made with Claude code for my personal use. As his manager, I'm still taking the credit for his work tough.
+This project is made with Claude Code for personal use. As its manager, I'm still taking the credit for its work though.
 
-Not all cases are tested. Worked for my use case with auto and interception mode. Works with both a cli and a small docker with usable frontend ui that looks pretty (mostly static code, it's not.)
-
-You wouldn't steal a car ? *Then don't use this to steal some copyrighted content* (or do it, I'm not your dad).
+Not all cases are tested. Worked for my use case. You wouldn't steal a car? *Then don't use this to steal copyrighted content* (or do it, I'm not your dad).
 
 ---
 
-## Requirements
-
-- Python 3.12+
-- ffmpeg
-- Git
-
----
-
-## 1. Install Python 3.12+
-
-### Linux (Ubuntu / Debian)
-
-```bash
-sudo apt update
-sudo apt install -y software-properties-common
-sudo add-apt-repository ppa:deadsnakes/ppa
-sudo apt update
-sudo apt install -y python3.12 python3.12-venv python3.12-dev
-```
-
-Verify the install:
-
-```bash
-python3.12 --version
-```
-
----
-
-## 2. Install ffmpeg
-
-### Linux
-
-```bash
-sudo apt install -y ffmpeg
-```
-
-Verify:
-
-```bash
-ffmpeg -version
-```
-
----
-
-## 3. Clone the repository
-
-```bash
-git clone <repo-url>
-cd m3u8-dl
-```
-
----
-
-## 4. Create and activate a virtual environment
-
-```bash
-python3.12 -m venv .venv
-```
-
-**Linux :**
-
-```bash
-source .venv/bin/activate
-```
-
-Your prompt should now show `(.venv)`.
-
----
-
-## 5. Install camoufox
-
-Pick one of the following. All three expose the same API.
-
-```bash
-# JWriter20 stabilisation fork (recommended)
-pip install "camoufox[geoip] @ git+https://github.com/JWriter20/camoufox.git#subdirectory=pythonlib"
-
-# Official package
-pip install 'camoufox[geoip]'
-
-# CloverLabs fork (most actively maintained as of 2025)
-pip install cloverlabs-camoufox
-```
-
-Then download the Firefox binary (one-time, ~100 MB):
-
-```bash
-python -m camoufox fetch
-```
-
----
-
-## 6. Install the project
-
-```bash
-pip install -e .
-```
-
----
-
-## 7. Verify the install
-
-```bash
-python -c "from camoufox.async_api import AsyncCamoufox; print('camoufox ok')"
-ffmpeg -version | head -1
-m3u8-dl --help
-```
-
----
-
-## Usage
-
-### Capture a movie
-
-```bash
-m3u8-dl capture
-```
-
-### Options
-
-| Flag | Default | Description |
-|---|---|---|
-| `--mode` | `auto` | `auto`: detect m3u8 then download in parallel. `intercept`: save TS chunks as the browser streams them. `direct`: download immediately from a known m3u8 URL. |
-| `--quality` | `best` | `best`, `worst`, or a resolution string like `1920x1080`. |
-| `--output-dir` | `~/Desktop` | Directory where the final mp4 is saved. |
-| `--keep-segments` | off | Keep `.ts` segment files after assembly. |
-| `--parallel` | `8` | Number of concurrent segment downloads (auto/direct mode). |
-| `--headless` | off | Run browser without a window. Not recommended for Cloudflare sites. |
-
-### Examples
-
-```bash
-# Best quality, auto mode, save to Desktop
-m3u8-dl capture
-
-# Force a specific resolution
-m3u8-dl capture --quality 1920x1080
-
-# Keep segments in case you need to re-assemble
-m3u8-dl capture --keep-segments --output-dir /tmp
-
-# Re-assemble from saved segments without re-downloading
-m3u8-dl assemble ~/.m3u8-dl/temp/my-movie ~/Desktop/my-movie.mp4
-```
-
----
-
-## Capture modes
-
-| Mode | How it works | Best for |
-|---|---|---|
-| `auto` | Waits up to 30s for m3u8 detection, then downloads all segments in parallel. Falls back to intercept if no playlist is found. | Long movies — fast parallel download. |
-| `intercept` | Saves every TS chunk as the browser receives it. You must let the video play from start to finish. | Sites where the m3u8 URL cannot be parsed directly. |
-| `direct` | Immediately fetches and downloads the playlist. Useful when you already know the m3u8 URL appears early. | Short clips or known playlist structures. |
-
----
-
-## Web UI (Docker)
-
-The web interface lets you queue captures from a browser without touching the terminal.
-
-### Quick start
+## Quick start (Docker)
 
 ```bash
 docker compose up --build
 ```
 
-Then open [http://localhost:8080](http://localhost:8080).
+Then open [http://localhost:3000](http://localhost:3000).
 
-Downloaded `.mp4` files are written to a `./movies/` folder next to the `docker-compose.yml`.
+Downloaded `.mp4` files land in `~/Downloads/` (override with `M3U8DL_OUTPUT_DIR`).
 
-### What the compose file does
+---
 
-| Setting | Value |
-|---|---|
-| Port | `8080` (host) → `8080` (container) |
-| Output volume | `./movies` → `/output` |
-| Capture mode | `auto` |
-| Quality | `best` |
-| Parallel downloads | `4` |
+## Features
 
-All values can be overridden in `docker-compose.yml` under `environment`, or passed directly:
+### Simple tab
+Queue a download by pasting an m3u8 URL or a page URL. The backend runs camoufox headless, intercepts the playlist, downloads all segments in parallel and assembles the final MP4. Supports scheduling.
+
+### Captured tab (manual browser control)
+Opens a full camoufox session in a virtual display (Xvfb). A live screenshot stream lets you navigate the site manually — click, scroll, go back, navigate to a URL. HLS playlists intercepted by the browser appear as candidates below the viewer. Pick one, give it a name, and start the download.
+
+### Sessions tab
+Lists all past and active browser sessions and their downloads. For each completed download you can confirm whether it was correct:
+
+- **✓ OK** — marks the CDN as trusted (keeps it in the website's known-CDN list)
+- **✗ Wrong** — removes the CDN from the known list, with an option to delete the output file
+
+### Websites tab
+Records every site you've downloaded from, across both Simple and Captured modes. Per website:
+
+- **Star rating** (1–5)
+- **Works / Broken** toggle — the "Flush broken" button removes all broken entries at once
+- **CDN count** — number of trusted CDN origins learned from past downloads; "flush" resets them
+- **Captured mode →** — opens a new Captured session for that URL (or defers close if one is already running)
+
+### CDN learning
+When a Captured download starts, the CDN origin (scheme + host of the playlist URL) is stored and associated with the website. In subsequent Captured sessions for the same site, candidates whose CDN matches a known one are **highlighted in green** — making it easy to pick the right stream again.
+
+---
+
+## Requirements
+
+- Docker + Docker Compose (recommended)
+- Or: Python 3.12+, ffmpeg, Node 20+ (manual setup)
+
+---
+
+## Docker setup
 
 ```bash
-M3U8DL_MAX_PARALLEL_DOWNLOADS=8 docker compose up
+docker compose up --build
 ```
-
-### Overridable environment variables
 
 | Variable | Default | Description |
 |---|---|---|
-| `M3U8DL_CAPTURE_MODE` | `auto` | `auto`, `intercept`, or `direct` |
-| `M3U8DL_PREFERRED_QUALITY` | `best` | `best`, `worst`, or `1920x1080` |
-| `M3U8DL_MAX_PARALLEL_DOWNLOADS` | `6` | Concurrent segment downloads |
-| `M3U8DL_OUTPUT_DIR` | `/output` | Where `.mp4` files are written |
-| `M3U8DL_TEMP_DIR` | `/tmp/m3u8-dl` | Temp segment storage |
-| `M3U8DL_HEADLESS` | `true` | Always true in Docker |
+| `M3U8DL_OUTPUT_DIR` | `~/Downloads` | Host directory for `.mp4` output |
+| `M3U8DL_PORT` | `3000` | Host port for the web UI |
+| `UID` / `GID` | `1000` | Run the backend as this user |
+
+Persistent data (browser profile, SQLite DB) is stored in the `m3u8dl-data` Docker volume.
+
+---
+
+## Manual setup
+
+### Backend
+
+```bash
+cd backend
+
+# Create venv
+python3.12 -m venv .venv
+source .venv/bin/activate
+
+# Install camoufox (pick one)
+pip install "camoufox[geoip] @ git+https://github.com/JWriter20/camoufox.git#subdirectory=pythonlib"
+# or: pip install 'camoufox[geoip]'
+
+# Download Firefox binary (one-time, ~100 MB)
+python -m camoufox fetch
+
+# Install dependencies
+pip install -e .
+
+# Run
+uvicorn m3u8_dl.web.app:app --host 0.0.0.0 --port 8080
+```
+
+### Frontend
+
+```bash
+cd frontend
+npm install
+npm run dev        # dev server (proxies /api → backend)
+# or: npm run build && serve dist/
+```
+
+Open [http://localhost:5173](http://localhost:5173) in dev mode.
 
 ---
 
 ## Project structure
 
 ```
-src/m3u8_dl/
-├── cli.py               # Click CLI (capture, assemble commands)
-├── config.py            # AppConfig (pydantic-settings, env prefix M3U8DL_)
+backend/src/m3u8_dl/
+├── config.py                  # AppConfig (pydantic-settings, M3U8DL_ prefix)
 ├── models/
-│   ├── segment.py       # Segment dataclass
-│   ├── playlist.py      # Playlist + Variant dataclasses
-│   └── session.py       # CaptureSession + status enum
+│   ├── segment.py
+│   ├── playlist.py
+│   └── session.py
 ├── services/
-│   ├── browser.py       # Camoufox browser lifecycle
-│   ├── interceptor.py   # Playwright response event listener
-│   ├── downloader.py    # Parallel httpx segment downloader
-│   ├── assembler.py     # ffmpeg concat → mp4
-│   └── capture.py       # Orchestration
-└── utils/
-    ├── m3u8_parser.py   # Playlist parsing and variant selection
-    └── ffmpeg_check.py  # ffmpeg availability check
+│   ├── browser.py             # Camoufox lifecycle (headless / virtual Xvfb)
+│   ├── interceptor.py         # Playlist interception
+│   ├── downloader.py          # Parallel segment downloader
+│   ├── assembler.py           # ffmpeg concat → mp4
+│   ├── capture.py             # Simple-mode orchestration
+│   └── title_scraper.py       # Page title suggestions
+├── utils/
+│   ├── m3u8_parser.py
+│   └── ffmpeg_check.py
+└── web/
+    ├── app.py                 # FastAPI app + lifespan
+    ├── router.py              # Simple jobs API
+    ├── service.py             # JobService (queue + scheduling)
+    ├── repository.py          # SQLite jobs table
+    ├── browse_session_router.py   # Captured mode API + SSE
+    ├── browse_session_service.py  # Browser session lifecycle
+    ├── browse_session_repository.py
+    ├── website_router.py      # Websites + CDN API
+    ├── website_service.py     # Website + CDN logic
+    └── website_repository.py  # SQLite websites + website_cdns tables
+
+frontend/src/
+├── App.tsx                    # Tab routing (Simple / Captured / Sessions / Websites)
+├── components/
+│   ├── SimpleTab/             # Job queue UI
+│   ├── CapturedTab/           # Browser viewer + candidate panel
+│   ├── SessionsTab/           # Session list + download confirm
+│   └── WebsitesTab/           # Website history + CDN management
+├── hooks/                     # SSE hooks (useJobs, useBrowseSessions, useWebsites)
+├── models/                    # TypeScript interfaces
+├── services/                  # API clients
+└── styles/                    # SCSS modules
 ```
 
 ---
 
-## Configuration via environment variables
+## Environment variables (backend)
 
-All options can also be set via environment variables with the `M3U8DL_` prefix:
-
-```bash
-M3U8DL_OUTPUT_DIR=~/Videos
-M3U8DL_KEEP_SEGMENTS=true
-M3U8DL_MAX_PARALLEL_DOWNLOADS=16
-M3U8DL_PREFERRED_QUALITY=1920x1080
-```
-
-Or place them in a `.env` file at the project root.
-
----
-
-## Resuming a failed capture
-
-If a capture fails after downloading segments, use the `assemble` command to rebuild the mp4 without re-downloading:
-
-```bash
-m3u8-dl assemble ~/.m3u8-dl/temp/my-movie ~/Desktop/my-movie.mp4
-```
-
-Segments are stored in `~/.m3u8-dl/temp/<output-name>/` when `--keep-segments` is used.
+| Variable | Default | Description |
+|---|---|---|
+| `M3U8DL_OUTPUT_DIR` | `~/Downloads` | Where `.mp4` files are written |
+| `M3U8DL_TEMP_DIR` | `/tmp/m3u8-dl` | Temp segment storage |
+| `M3U8DL_PREFERRED_QUALITY` | `best` | `best`, `worst`, or `1920x1080` |
+| `M3U8DL_MAX_PARALLEL_DOWNLOADS` | `4` | Concurrent segment downloads |
+| `M3U8DL_HEADLESS` | `true` | Browser headless mode |

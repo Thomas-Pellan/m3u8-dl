@@ -1,0 +1,37 @@
+@use 'variables' as v;
+
+.card {
+  background: v.$clr-bg-card;
+  border: 1px solid v.$clr-border-card;
+  border-radius: v.$r-lg;
+  padding: v.$sp-7;
+  margin-bottom: v.$sp-7;
+}
+
+.card-title {
+  color: v.$clr-text-muted;
+  font-size: v.$fs-md;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  margin-bottom: v.$sp-7;
+}
+
+.jh {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: v.$sp-2;
+}
+
+.jh-tick {
+  font-size: v.$fs-sm;
+  color: v.$clr-text-tick;
+}
+
+.empty {
+  color: #333;
+  text-align: center;
+  padding: v.$sp-8;
+  font-size: v.$fs-lg;
+}

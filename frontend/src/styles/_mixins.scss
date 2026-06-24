@@ -1,0 +1,42 @@
+@use 'variables' as v;
+
+// ── Responsive breakpoints (mobile-first) ─────────────────────────────────────
+
+@mixin respond-sm {
+  @media (min-width: v.$bp-sm) { @content; }
+}
+
+@mixin respond-md {
+  @media (min-width: v.$bp-md) { @content; }
+}
+
+@mixin respond-lg {
+  @media (min-width: v.$bp-lg) { @content; }
+}
+
+// ── Shared input base ─────────────────────────────────────────────────────────
+
+@mixin input-base {
+  width: 100%;
+  background: v.$clr-bg;
+  border: 1px solid v.$clr-border;
+  border-radius: v.$r-md;
+  color: v.$clr-text;
+  font-family: v.$font-mono;
+  font-size: v.$fs-xl;
+  padding: v.$sp-3 v.$sp-5;
+  outline: none;
+  transition: border-color v.$tr;
+
+  &:focus { border-color: v.$clr-accent; }
+  &::placeholder { color: v.$clr-text-tick; }
+}
+
+// ── Action button variant ─────────────────────────────────────────────────────
+
+@mixin action-btn($bg, $color) {
+  background: $bg;
+  color: $color;
+
+  &:hover:not(:disabled) { opacity: 0.75; }
+}

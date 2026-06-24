@@ -1,15 +1,34 @@
 services:
-  m3u8-dl:
+  backend:
     build:
-      context: .
+      context: ./backend
       args:
         UID: "${UID:-1000}"
         GID: "${GID:-1000}"
     user: "${UID:-1000}:${GID:-1000}"
     init: true
-    ports:
-      - "${M3U8DL_PORT}:8080"
+    shm_size: '2g'
     volumes:
-      - ${M3U8DL_OUTPUT_DIR}:/output     # downloaded .mp4 files land here
+      - ${M3U8DL_OUTPUT_DIR:-~/Downloads}:/output
+      - m3u8dl-data:/home/app/.m3u8-dl
     environment:
       M3U8DL_HEADLESS: "true"
+    networks:
+      - internal
+
+  frontend:
+    build:
+      context: ./frontend
+    ports:
+      - "${M3U8DL_PORT:-3000}:3000"
+    depends_on:
+      - backend
+    networks:
+      - internal
+
+volumes:
+  m3u8dl-data:
+
+networks:
+  internal:
+    driver: bridge

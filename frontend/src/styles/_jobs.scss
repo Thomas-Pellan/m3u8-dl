@@ -1,0 +1,101 @@
+@use 'variables' as v;
+@use 'mixins' as m;
+
+// ── Table wrapper (enables horizontal scroll on mobile) ───────────────────────
+
+.table-wrap {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+// ── Table ─────────────────────────────────────────────────────────────────────
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: v.$fs-lg;
+  min-width: 560px;
+
+  @include m.respond-md {
+    min-width: unset;
+  }
+}
+
+th {
+  color: v.$clr-text-dim;
+  font-weight: 400;
+  text-align: left;
+  padding: 0.3rem v.$sp-3;
+  border-bottom: 1px solid v.$clr-border-th;
+}
+
+td {
+  padding: 0.42rem v.$sp-3;
+  border-bottom: 1px solid v.$clr-border-td;
+  vertical-align: top;
+  max-width: 0;
+}
+
+// ── Cell variants ─────────────────────────────────────────────────────────────
+
+.c-id       { color: v.$clr-text-dim; white-space: nowrap; width: 7%; }
+.c-url      { width: 36%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: v.$clr-text-label; }
+.c-name     { width: 22%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: v.$clr-text-name; }
+.c-time     { width: 13%; white-space: nowrap; color: v.$clr-text-dim; font-size: v.$fs-md; }
+.c-st       { width: 22%; }
+.c-sched-at { width: 18%; white-space: nowrap; color: v.$clr-warn; font-size: v.$fs-md; }
+
+// ── Status badge ──────────────────────────────────────────────────────────────
+
+.badge {
+  border-radius: v.$r-sm;
+  font-size: v.$fs-sm;
+  padding: 0.12rem 0.35rem;
+  font-weight: 700;
+  display: inline-block;
+
+  &.p { background: v.$clr-badge-pending-bg; color: v.$clr-warn; }
+  &.r { background: v.$clr-badge-running-bg; color: v.$clr-accent-green; }
+  &.d { background: v.$clr-badge-done-bg;    color: v.$clr-accent; }
+  &.e { background: v.$clr-badge-error-bg;   color: v.$clr-error; }
+}
+
+.pct { color: v.$clr-accent-green; font-size: v.$fs-sm; margin-left: v.$sp-3; font-weight: 700; }
+
+// ── Job detail lines ──────────────────────────────────────────────────────────
+
+.err {
+  color: v.$clr-error-dim;
+  font-size: v.$fs-xs;
+  margin-top: v.$sp-1;
+  word-break: break-all;
+  white-space: normal;
+}
+
+.out {
+  color: v.$clr-text-faint;
+  font-size: v.$fs-xs;
+  margin-top: v.$sp-1;
+}
+
+.logs {
+  background: v.$clr-bg-logs;
+  border: 1px solid v.$clr-border-td;
+  border-radius: v.$r-sm;
+  font-size: v.$fs-2xs;
+  padding: 0.35rem v.$sp-4;
+  margin-top: 0.35rem;
+  max-height: 110px;
+  overflow-y: auto;
+  white-space: pre-wrap;
+  word-break: break-all;
+  line-height: 1.5;
+  display: flex;
+  flex-direction: column;
+}
+
+// ── Action groups ─────────────────────────────────────────────────────────────
+
+.job-actions     { display: flex; gap: v.$sp-2; margin-top: v.$sp-2; }
+.sched-actions   { display: flex; gap: v.$sp-2; }
+.sched-post-actions { margin-top: v.$sp-2; }
